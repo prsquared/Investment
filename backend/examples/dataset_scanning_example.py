@@ -113,7 +113,8 @@ def example_2_quick_scan():
             logger.info(f"\n{row.symbol} - ${row.price:.2f}")
             logger.info(f"  Score: {row.technical_score:.1f}/100 | Confidence: {row.confidence}")
             logger.info(f"  Entry: ${row.entry_price:.2f} | Target: ${row.target_price:.2f} | Stop: ${row.stop_loss:.2f}")
-            logger.info(f"  Risk/Reward: 1:{row.risk_reward_ratio:.2f}")
+            if row.risk_reward_ratio is not None:
+                logger.info(f"  Risk/Reward: 1:{row.risk_reward_ratio:.2f}")
             if row.reasons:
                 logger.info(f"  Top Reason: {row.reasons[0]}")
     
@@ -158,9 +159,10 @@ def example_3_sector_scan():
         logger.info("-"*80)
         
         for row in buy_signals.itertuples():
+            rr_str = f"1:{row.risk_reward_ratio:<7.2f}" if row.risk_reward_ratio is not None else "N/A      "
             logger.info(
                 f"{row.symbol:<8}{row.technical_score:<8.1f}"
-                f"{row.confidence:<12}${row.price:<9.2f}${row.target_price:<9.2f}1:{row.risk_reward_ratio:<7.2f}"
+                f"{row.confidence:<12}${row.price:<9.2f}${row.target_price:<9.2f}{rr_str}"
             )
         
         # Save tech sector results
@@ -254,7 +256,8 @@ def example_5_top_picks():
         logger.info(f"    Entry: ${row.entry_price:.2f}")
         logger.info(f"    Target: ${row.target_price:.2f} (+{((row.target_price/row.entry_price)-1)*100:.1f}%)")
         logger.info(f"    Stop Loss: ${row.stop_loss:.2f} ({((row.stop_loss/row.entry_price)-1)*100:.1f}%)")
-        logger.info(f"    Risk/Reward: 1:{row.risk_reward_ratio:.2f}")
+        if row.risk_reward_ratio is not None:
+            logger.info(f"    Risk/Reward: 1:{row.risk_reward_ratio:.2f}")
         
         if row.reasons and len(row.reasons) > 0:
             logger.info(f"  Key Reasons:")

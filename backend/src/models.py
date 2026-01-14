@@ -147,8 +147,126 @@ class TradingSignal:
 
 
 @dataclass
+class FundamentalIndicators:
+    """Fundamental analysis metrics for a stock."""
+
+    # Valuation Ratios
+    pe_ratio: Optional[float] = None  # Price-to-Earnings
+    forward_pe: Optional[float] = None
+    peg_ratio: Optional[float] = None  # P/E to Growth
+    price_to_book: Optional[float] = None
+    price_to_sales: Optional[float] = None
+    ev_to_ebitda: Optional[float] = None
+
+    # Growth Metrics
+    earnings_growth: Optional[float] = None  # YoY EPS growth %
+    revenue_growth: Optional[float] = None  # YoY revenue growth %
+    earnings_quarterly_growth: Optional[float] = None
+
+    # Profitability
+    profit_margin: Optional[float] = None  # Net margin %
+    operating_margin: Optional[float] = None
+    gross_margin: Optional[float] = None
+    roe: Optional[float] = None  # Return on Equity %
+    roa: Optional[float] = None  # Return on Assets %
+
+    # Financial Health
+    debt_to_equity: Optional[float] = None
+    current_ratio: Optional[float] = None
+    quick_ratio: Optional[float] = None
+    free_cash_flow: Optional[float] = None
+
+    # Earnings & Dividends
+    eps: Optional[float] = None  # Earnings per share
+    dividend_yield: Optional[float] = None
+    payout_ratio: Optional[float] = None
+
+    # Market Data
+    market_cap: Optional[float] = None
+    beta: Optional[float] = None  # Volatility vs market
+    shares_outstanding: Optional[float] = None
+    float_shares: Optional[float] = None
+
+    # Analyst Data
+    target_price: Optional[float] = None
+    recommendation: Optional[str] = None  # Buy, Hold, Sell
+    num_analysts: Optional[int] = None
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary."""
+        return {
+            'valuation': {
+                'pe_ratio': self.pe_ratio,
+                'forward_pe': self.forward_pe,
+                'peg_ratio': self.peg_ratio,
+                'price_to_book': self.price_to_book,
+                'price_to_sales': self.price_to_sales,
+                'ev_to_ebitda': self.ev_to_ebitda,
+            },
+            'growth': {
+                'earnings_growth': self.earnings_growth,
+                'revenue_growth': self.revenue_growth,
+                'earnings_quarterly_growth': self.earnings_quarterly_growth,
+            },
+            'profitability': {
+                'profit_margin': self.profit_margin,
+                'operating_margin': self.operating_margin,
+                'gross_margin': self.gross_margin,
+                'roe': self.roe,
+                'roa': self.roa,
+            },
+            'financial_health': {
+                'debt_to_equity': self.debt_to_equity,
+                'current_ratio': self.current_ratio,
+                'quick_ratio': self.quick_ratio,
+                'free_cash_flow': self.free_cash_flow,
+            },
+            'earnings_dividends': {
+                'eps': self.eps,
+                'dividend_yield': self.dividend_yield,
+                'payout_ratio': self.payout_ratio,
+            },
+            'market': {
+                'market_cap': self.market_cap,
+                'beta': self.beta,
+                'shares_outstanding': self.shares_outstanding,
+                'float_shares': self.float_shares,
+            },
+            'analyst': {
+                'target_price': self.target_price,
+                'recommendation': self.recommendation,
+                'num_analysts': self.num_analysts,
+            }
+        }
+
+
+@dataclass
+class FundamentalScore:
+    """Fundamental analysis score breakdown."""
+
+    valuation_score: float = 0.0  # 0-100 (lower P/E, PEG is better)
+    growth_score: float = 0.0  # 0-100 (higher growth is better)
+    profitability_score: float = 0.0  # 0-100 (higher margins, ROE is better)
+    financial_health_score: float = 0.0  # 0-100 (lower debt, higher liquidity is better)
+    composite_score: float = 0.0  # 0-100
+
+    reasons: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary."""
+        return {
+            'valuation_score': round(self.valuation_score, 2),
+            'growth_score': round(self.growth_score, 2),
+            'profitability_score': round(self.profitability_score, 2),
+            'financial_health_score': round(self.financial_health_score, 2),
+            'composite_score': round(self.composite_score, 2),
+            'reasons': self.reasons,
+        }
+
+
+@dataclass
 class StockData:
-    """Complete stock data with technical analysis."""
+    """Complete stock data with technical and fundamental analysis."""
 
     symbol: str
     current_price: float
@@ -162,6 +280,12 @@ class StockData:
     # Technical Analysis
     technical_indicators: Optional[TechnicalIndicators] = None
     technical_score: Optional[TechnicalScore] = None
+    
+    # Fundamental Analysis
+    fundamental_indicators: Optional[FundamentalIndicators] = None
+    fundamental_score: Optional[FundamentalScore] = None
+    
+    # Combined Signal
     trading_signal: Optional[TradingSignal] = None
 
     # Metadata
@@ -182,6 +306,8 @@ class StockData:
             },
             'technical_indicators': self.technical_indicators.to_dict() if self.technical_indicators else None,
             'technical_score': self.technical_score.to_dict() if self.technical_score else None,
+            'fundamental_indicators': self.fundamental_indicators.to_dict() if self.fundamental_indicators else None,
+            'fundamental_score': self.fundamental_score.to_dict() if self.fundamental_score else None,
             'trading_signal': self.trading_signal.to_dict() if self.trading_signal else None,
             'metadata': {
                 'market_cap': self.market_cap,

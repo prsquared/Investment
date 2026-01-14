@@ -13,31 +13,42 @@ try:
     from .dataset_collector import DatasetCollector
     from .data_fetcher import DataFetcher
     from .technical_analysis import TechnicalAnalysisEngine
+    from .fundamental_analysis import FundamentalAnalysisEngine
     from .models import StockData, TradingSignal, SignalType, ConfidenceLevel
 except ImportError:
     from dataset_collector import DatasetCollector
     from data_fetcher import DataFetcher
     from technical_analysis import TechnicalAnalysisEngine
+    from fundamental_analysis import FundamentalAnalysisEngine
     from models import StockData, TradingSignal, SignalType, ConfidenceLevel
 
 
 class StockScanner:
-    """Scan stock datasets with technical analysis."""
+    """Scan stock datasets with technical and fundamental analysis."""
 
-    def __init__(self, output_dir: str = "output", use_cache: bool = True):
+    def __init__(
+        self, 
+        output_dir: str = "output", 
+        use_cache: bool = True,
+        include_fundamentals: bool = False
+    ):
         """
         Initialize stock scanner.
         
         Args:
             output_dir: Directory to save scan results
             use_cache: Enable caching to avoid re-fetching data (default: True)
+            include_fundamentals: Include fundamental analysis (default: False, slower but more comprehensive)
         """
         self.dataset_collector = DatasetCollector()
         self.data_fetcher = DataFetcher(use_cache=use_cache)
-        self.analyzer = TechnicalAnalysisEngine()
+        self.technical_analyzer = TechnicalAnalysisEngine()
+        self.fundamental_analyzer = FundamentalAnalysisEngine() if include_fundamentals else None
+        self.include_fundamentals = include_fundamentals
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True, parents=True)
-        logger.info(f"StockScanner initialized (cache: {'enabled' if use_cache else 'disabled'})")
+        logger.info(f"StockScanner initialized (cache: {'enabled' if use_cache else 'disabled'}, "
+                   f"fundamentals: {'enabled' if include_fundamentals else 'disabled'})")
 
     def analyze_single_stock(
         self, 
@@ -45,7 +56,7 @@ class StockScanner:
         include_company_info: bool = False
     ) -> Optional[Dict]:
         """
-        Analyze a single stock with technical analysis.
+        Analyze a single stock with technical and optional fundamental analysis.
         
         Args:
             symbol: Stock ticker symbol
@@ -63,36 +74,36 @@ class StockScanner:
                 logger.warning(f"Could not fetch data for {symbol}")
                 return None
             
-            # Calculate indicators
-            indicators = self.analyzer.calculate_indicators(historical_df)
+            # Calculate technical indicators
+            indicators = self.technical_analyzer.calculate_indicators(historical_df)
             
             if indicators is None:
                 logger.warning(f"Could not calculate indicators for {symbol}")
                 return None
             
-            # Calculate score
-            score = self.analyzer.calculate_technical_score(
+            # Calculate technical score
+            tech_score = self.technical_analyzer.calculate_technical_score(
                 indicators, 
                 current_data['current_price']
             )
             
             # Generate signal
-            signal = self.analyzer.generate_signal(
+            signal = self.technical_analyzer.generate_signal(
                 indicators, 
-                score, 
+                tech_score, 
                 current_data['current_price']
             )
             
-            # Build result
+            # Build result with technical analysis
             result = {
                 'symbol': symbol,
                 'price': current_data['current_price'],
                 'volume': current_data.get('volume', 0),
-                'technical_score': score.composite_score,
-                'trend_score': score.trend_score,
-                'momentum_score': score.momentum_score,
-                'volatility_score': score.volatility_score,
-                'volume_score': score.volume_score,
+                'technical_score': tech_score.composite_score,
+                'trend_score': tech_score.trend_score,
+                'momentum_score': tech_score.momentum_score,
+                'volatility_score': tech_score.volatility_score,
+                'volume_score': tech_score.volume_score,
                 'signal': signal.signal_type.value,
                 'confidence': signal.confidence.value,
                 'entry_price': signal.entry_price,
@@ -102,6 +113,46 @@ class StockScanner:
                 'reasons': signal.reasons[:5],  # Top 5 reasons
                 'timestamp': pd.Timestamp.now().isoformat()
             }
+            
+            # Add fundamental analysis if enabled
+            if self.include_fundamentals and self.fundamental_analyzer:
+                fund_indicators = self.fundamental_analyzer.fetch_fundamentals(symbol)
+                
+                if fund_indicators:
+                    fund_score = self.fundamental_analyzer.calculate_fundamental_score(
+                        fund_indicators,
+                        current_data['current_price']
+                    )
+                    
+                    # Add fundamental metrics to result
+                    result.update({
+                        'fundamental_score': fund_score.composite_score,
+                        'valuation_score': fund_score.valuation_score,
+                        'growth_score': fund_score.growth_score,
+                        'profitability_score': fund_score.profitability_score,
+                        'financial_health_score': fund_score.financial_health_score,
+                        'pe_ratio': fund_indicators.pe_ratio,
+                        'peg_ratio': fund_indicators.peg_ratio,
+                        'earnings_growth': fund_indicators.earnings_growth,
+                        'revenue_growth': fund_indicators.revenue_growth,
+                        'profit_margin': fund_indicators.profit_margin,
+                        'roe': fund_indicators.roe,
+                        'debt_to_equity': fund_indicators.debt_to_equity,
+                        'analyst_target': fund_indicators.target_price,
+                        'analyst_recommendation': fund_indicators.recommendation,
+                        'fundamental_reasons': fund_score.reasons[:3],  # Top 3 fundamental reasons
+                        
+                        # Combined score (60% technical, 40% fundamental for swing trading)
+                        'composite_score': (tech_score.composite_score * 0.6) + (fund_score.composite_score * 0.4)
+                    })
+                else:
+                    # No fundamental data available
+                    result.update({
+                        'fundamental_score': None,
+                        'composite_score': tech_score.composite_score  # Fall back to technical only
+                    })
+            else:
+                result['composite_score'] = tech_score.composite_score
             
             return result
             
@@ -154,6 +205,7 @@ class StockScanner:
         
         # Scan stocks
         results = []
+        failed_count = 0
         
         if parallel:
             # Parallel processing
@@ -169,26 +221,33 @@ class StockScanner:
                         result = future.result()
                         if result:
                             results.append(result)
+                        else:
+                            failed_count += 1
                         
                         if i % 10 == 0:
-                            logger.info(f"Progress: {i}/{len(symbols)} stocks analyzed")
+                            logger.info(f"Progress: {i}/{len(symbols)} stocks analyzed ({len(results)} successful, {failed_count} failed)")
                         
                         # Rate limiting
                         time.sleep(0.1)
                         
                     except Exception as e:
                         logger.error(f"Error processing {symbol}: {e}")
+                        failed_count += 1
         else:
             # Sequential processing
             for i, symbol in enumerate(symbols, 1):
                 result = self.analyze_single_stock(symbol)
                 if result:
                     results.append(result)
+                else:
+                    failed_count += 1
                 
                 if i % 10 == 0:
-                    logger.info(f"Progress: {i}/{len(symbols)} stocks analyzed")
+                    logger.info(f"Progress: {i}/{len(symbols)} stocks analyzed ({len(results)} successful, {failed_count} failed)")
                 
                 time.sleep(0.2)  # Rate limiting
+        
+        logger.info(f"Scan complete: {len(results)} successful, {failed_count} failed out of {len(symbols)} total stocks")
         
         if not results:
             logger.warning("No results from scan")
@@ -198,18 +257,20 @@ class StockScanner:
         results_df = pd.DataFrame(results)
         
         # Apply filters
+        total_before_filter = len(results_df)
+        
         if signal_filter:
             results_df = results_df[results_df['signal'] == signal_filter.upper()]
-            logger.info(f"Filtered to {len(results_df)} {signal_filter} signals")
+            logger.info(f"Signal filter: {len(results_df)}/{total_before_filter} stocks with {signal_filter} signal")
         
         if min_score > 0:
             results_df = results_df[results_df['technical_score'] >= min_score]
-            logger.info(f"Filtered to {len(results_df)} stocks with score >= {min_score}")
+            logger.info(f"Score filter: {len(results_df)} stocks with score >= {min_score}")
         
         # Sort by technical score (descending)
         results_df = results_df.sort_values('technical_score', ascending=False)
         
-        logger.success(f"Scan complete: {len(results_df)} stocks analyzed")
+        logger.success(f"Final results: {len(results_df)} stocks (started with {len(symbols)}, {len(results)} had data, {len(symbols) - len(results)} failed)")
         
         return results_df
 
