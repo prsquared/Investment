@@ -1,0 +1,28 @@
+# Core Data Processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Financial Data Sources
+yfinance>=0.2.32
+alpha-vantage>=2.3.1
+
+# Technical Analysis Libraries
+ta>=0.11.0
+pandas-ta>=0.3.14b
+
+# Configuration Management
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pyyaml>=6.0.1
+
+# Logging
+loguru>=0.7.2
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+
+# Database (optional - for caching)
+sqlalchemy>=2.0.0
+
