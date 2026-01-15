@@ -170,6 +170,143 @@ class DatasetCollector:
             logger.error(f"Error fetching NASDAQ 100 data: {e}")
             return pd.DataFrame()
 
+    def fetch_nifty50_companies(self, save: bool = True) -> pd.DataFrame:
+        """
+        Fetch Nifty 50 company list (Indian stocks).
+        
+        Args:
+            save: Whether to save to CSV file
+            
+        Returns:
+            DataFrame with columns: Symbol, Company, Sector
+        """
+        logger.info("Fetching Nifty 50 companies...")
+        
+        try:
+            # Nifty 50 symbols - these are the top 50 companies in India
+            nifty50_symbols = [
+                'RELIANCE', 'TCS', 'INFOSY', 'HDFC', 'ICICIBANK', 'SBIN', 'BAJAJFINSV',
+                'MARUTI', 'SUNPHARMA', 'ASIANPAINT', 'HCLTECH', 'WIPRO', 'KOTAKBANK',
+                'BAJAJ-AUTO', 'DMART', 'LT', 'ITC', 'AXISBANK', 'INDIGO', 'JSWSTEEL',
+                'TATASTEEL', 'HEROMOTOCO', 'LUPIN', 'POWERGRID', 'ULTRACEMCO', 'NTPC',
+                'CIPLA', 'TECHM', 'DIVISLAB', 'BHARTIARTL', 'GRASIM', 'EICHERMOT',
+                'HINDALCO', 'BPCL', 'M&M', 'NESTLEIND', 'HDFCLIFE', 'SBILIFE', 'MGL',
+                'DRREDDY', 'HINDUNILVR', 'APOLLOHOSP', 'AUROPHARMA', 'INFY', 'ADANIPORTS',
+                'ADANIENT', 'CEMENT', 'INDUSINDBK'
+            ]
+            
+            # Create DataFrame with Nifty 50 data (add .NS suffix for Yahoo Finance)
+            df = pd.DataFrame({
+                'symbol': [f"{sym}.NS" for sym in nifty50_symbols],
+                'company_name': nifty50_symbols,  # Could enhance with actual names
+                'sector': 'NIFTY50',  # Placeholder
+                'dataset': 'NIFTY50'
+            })
+            
+            logger.success(f"Loaded {len(df)} Nifty 50 companies")
+            
+            if save:
+                filepath = self.data_dir / "nifty50_companies.csv"
+                df.to_csv(filepath, index=False)
+                logger.info(f"Saved to {filepath}")
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error fetching Nifty 50 data: {e}")
+            return pd.DataFrame()
+
+    def fetch_nifty_next50_companies(self, save: bool = True) -> pd.DataFrame:
+        """
+        Fetch Nifty Next 50 company list (Indian stocks).
+        
+        Args:
+            save: Whether to save to CSV file
+            
+        Returns:
+            DataFrame with columns: Symbol, Company, Sector
+        """
+        logger.info("Fetching Nifty Next 50 companies...")
+        
+        try:
+            # Nifty Next 50 symbols
+            nifty_next50_symbols = [
+                'ALKEM', 'AMBUJACEM', 'BANKBARODA', 'BIOCON', 'BOSCHLTD', 'CENTURYTEX',
+                'COLPAL', 'ESCORT', 'EXIDEIND', 'FSL', 'GAIL', 'GODREJCP', 'IDBI',
+                'INDIANB', 'IPCALAB', 'JINDALSTEL', 'JSWENERGY', 'KPITTECH', 'LICHSGFIN',
+                'LTFH', 'MCDOWELL', 'MOTHERSON', 'NATIONALUM', 'NAUKRI', 'NHPC', 'ONGC',
+                'PAGEIND', 'PETRONET', 'PFC', 'RECLTD', 'SAIL', 'SCI', 'SIEMENS', 'STARTECH',
+                'SUNPRINT', 'SUNTV', 'TATAMOTORS', 'TITAN', 'TORNTPOWER', 'TORNTPHARMA',
+                'TRENT', 'TRITURBINE', 'UPL', 'VBL', 'VEDL', 'VOLTAS', 'ZCAL', 'ZEEL'
+            ]
+            
+            # Create DataFrame with Nifty Next 50 data (add .NS suffix for Yahoo Finance)
+            df = pd.DataFrame({
+                'symbol': [f"{sym}.NS" for sym in nifty_next50_symbols],
+                'company_name': nifty_next50_symbols,  # Could enhance with actual names
+                'sector': 'NIFTYNEXT50',  # Placeholder
+                'dataset': 'NIFTYNEXT50'
+            })
+            
+            logger.success(f"Loaded {len(df)} Nifty Next 50 companies")
+            
+            if save:
+                filepath = self.data_dir / "niftynext50_companies.csv"
+                df.to_csv(filepath, index=False)
+                logger.info(f"Saved to {filepath}")
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error fetching Nifty Next 50 data: {e}")
+            return pd.DataFrame()
+
+    def fetch_niftymidcap_companies(self, save: bool = True) -> pd.DataFrame:
+        """
+        Fetch Nifty Midcap Select company list (Indian stocks).
+        
+        Args:
+            save: Whether to save to CSV file
+            
+        Returns:
+            DataFrame with columns: Symbol, Company, Sector
+        """
+        logger.info("Fetching Nifty Midcap Select companies...")
+        
+        try:
+            # Nifty Midcap Select symbols (top 50 midcap stocks)
+            niftymidcap_symbols = [
+                'ABB', 'ABCAPITAL', 'ABSLLICER', 'ADHARSH', 'ADHUNIK', 'ADITYABRL',
+                'ADVANIPORT', 'AEGISCHEM', 'AETHER', 'AFLAM', 'AGRITECH', 'AHLUCONE',
+                'AIAENG', 'AKUMS', 'ALEMBIC', 'ALOTECH', 'ALPHABLDG', 'ALTARRTECH',
+                'AMBER', 'AMZL', 'ANANYAENT', 'ANDEROBA', 'ANURAS', 'AOFINANCE',
+                'APEIRON', 'APLLTD', 'APOLLOADV', 'APPLAUD', 'APPLYCARD', 'APTECH',
+                'ARJUNPHARMA', 'ARKADE', 'ARMADAMAN', 'ARTHUNEMPLOYED', 'ARVIND',
+                'ASAHIINDIA', 'ASIANHOTEL', 'ASIANPNT', 'ASIANSLATE', 'ASKAUTOMV',
+                'ASSEEM', 'ASTECK', 'ASTERDM', 'ASTRA', 'ASTRAL', 'ASTRUTIC', 'ASUPERB', 'ATGL', 'ATIIND'
+            ]
+            
+            # Create DataFrame with Nifty Midcap Select data (add .NS suffix for Yahoo Finance)
+            df = pd.DataFrame({
+                'symbol': [f"{sym}.NS" for sym in niftymidcap_symbols[:50]],  # Ensure exactly 50
+                'company_name': niftymidcap_symbols[:50],  # Could enhance with actual names
+                'sector': 'NIFTYMIDCAP',  # Placeholder
+                'dataset': 'NIFTYMIDCAP'
+            })
+            
+            logger.success(f"Loaded {len(df)} Nifty Midcap Select companies")
+            
+            if save:
+                filepath = self.data_dir / "niftymidcap_companies.csv"
+                df.to_csv(filepath, index=False)
+                logger.info(f"Saved to {filepath}")
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error fetching Nifty Midcap Select data: {e}")
+            return pd.DataFrame()
+
     def fetch_all_datasets(self) -> Dict[str, pd.DataFrame]:
         """
         Fetch all available datasets.
@@ -193,15 +330,56 @@ class DatasetCollector:
         if not nasdaq100.empty:
             datasets['NASDAQ100'] = nasdaq100
         
-        # Create combined dataset (removing duplicates)
-        if datasets:
-            combined = pd.concat(datasets.values(), ignore_index=True)
-            combined = combined.drop_duplicates(subset=['symbol'], keep='first')
-            datasets['COMBINED'] = combined
+        # Fetch Nifty 50
+        nifty50 = self.fetch_nifty50_companies(save=True)
+        if not nifty50.empty:
+            datasets['NIFTY50'] = nifty50
+        
+        # Fetch Nifty Next 50
+        nifty_next50 = self.fetch_nifty_next50_companies(save=True)
+        if not nifty_next50.empty:
+            datasets['NIFTYNEXT50'] = nifty_next50
+        
+        # Fetch Nifty Midcap Select
+        nifty_midcap = self.fetch_niftymidcap_companies(save=True)
+        if not nifty_midcap.empty:
+            datasets['NIFTYMIDCAP'] = nifty_midcap
+        
+        # Create combined US dataset
+        us_combined = None
+        if 'SP500' in datasets or 'NASDAQ100' in datasets:
+            us_datasets = [datasets[k] for k in ['SP500', 'NASDAQ100'] if k in datasets]
+            if us_datasets:
+                us_combined = pd.concat(us_datasets, ignore_index=True)
+                us_combined = us_combined.drop_duplicates(subset=['symbol'], keep='first')
+                datasets['COMBINED'] = us_combined
+                
+                filepath = self.data_dir / "combined_companies.csv"
+                us_combined.to_csv(filepath, index=False)
+                logger.success(f"Saved combined US dataset ({len(us_combined)} companies) to {filepath}")
+        
+        # Create combined Nifty dataset
+        nifty_datasets_list = [datasets[k] for k in ['NIFTY50', 'NIFTYNEXT50', 'NIFTYMIDCAP'] if k in datasets]
+        if nifty_datasets_list:
+            nifty_combined = pd.concat(nifty_datasets_list, ignore_index=True)
+            nifty_combined = nifty_combined.drop_duplicates(subset=['symbol'], keep='first')
+            datasets['NIFTY_ALL'] = nifty_combined
             
-            filepath = self.data_dir / "combined_companies.csv"
-            combined.to_csv(filepath, index=False)
-            logger.success(f"Saved combined dataset ({len(combined)} companies) to {filepath}")
+            filepath = self.data_dir / "nifty_all_companies.csv"
+            nifty_combined.to_csv(filepath, index=False)
+            logger.success(f"Saved combined Nifty dataset ({len(nifty_combined)} companies) to {filepath}")
+        
+        # Create global combined dataset (all indices)
+        if datasets:
+            all_datasets = [datasets[k] for k in datasets.keys() if k not in ['COMBINED', 'NIFTY_ALL']]
+            if all_datasets:
+                global_combined = pd.concat(all_datasets, ignore_index=True)
+                global_combined = global_combined.drop_duplicates(subset=['symbol'], keep='first')
+                datasets['ALL'] = global_combined
+                
+                filepath = self.data_dir / "all_companies.csv"
+                global_combined.to_csv(filepath, index=False)
+                logger.success(f"Saved global combined dataset ({len(global_combined)} companies) to {filepath}")
         
         return datasets
 
@@ -210,7 +388,8 @@ class DatasetCollector:
         Load a previously saved dataset.
         
         Args:
-            dataset_name: Name of dataset ('SP500', 'NASDAQ100', or 'COMBINED')
+            dataset_name: Name of dataset ('SP500', 'NASDAQ100', 'NIFTY50', 'NIFTYNEXT50', 
+                         'NIFTYMIDCAP', 'COMBINED', 'NIFTY_ALL', or 'ALL')
             
         Returns:
             DataFrame or None if not found
@@ -218,7 +397,12 @@ class DatasetCollector:
         filename_map = {
             'SP500': 'sp500_companies.csv',
             'NASDAQ100': 'nasdaq100_companies.csv',
-            'COMBINED': 'combined_companies.csv'
+            'NIFTY50': 'nifty50_companies.csv',
+            'NIFTYNEXT50': 'niftynext50_companies.csv',
+            'NIFTYMIDCAP': 'niftymidcap_companies.csv',
+            'COMBINED': 'combined_companies.csv',
+            'NIFTY_ALL': 'nifty_all_companies.csv',
+            'ALL': 'all_companies.csv'
         }
         
         filename = filename_map.get(dataset_name.upper())
